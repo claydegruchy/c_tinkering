@@ -3,6 +3,9 @@
 #include <string>
 #include <unistd.h>
 
+#include "opencv2/highgui.hpp"
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/imgproc.hpp"
 #include <opencv2/opencv.hpp>
 
 cv::Mat simple_degridation(cv::Mat img, int divisions = 2) {
@@ -102,6 +105,12 @@ cv::Mat simple_degridation(cv::Mat img, int divisions = 2) {
 cv::Mat bright_find(cv::Mat img) {
 
   int max = 0;
+
+  // convert to grayscale
+  // cv::cvtColor(img, img, cv::COLOR_BGR2GRAY);
+  // blur image
+  cv::GaussianBlur(img, img, cv::Size(3, 3), 0, 0);
+  // cv::blur(img, img, cv::Size(10, 10));
 
   // loop over pixles
   for (int i = 0; i < img.rows; i++) {
