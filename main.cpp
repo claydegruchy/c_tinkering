@@ -102,39 +102,56 @@ cv::Mat simple_degridation(cv::Mat img, int divisions = 2) {
   return img;
 }
 
+cv::RNG rng;
+
 cv::Mat bright_find(cv::Mat img) {
 
   int max = 0;
 
   // convert to grayscale
-  // cv::cvtColor(img, img, cv::COLOR_BGR2GRAY);
+  cv::cvtColor(img, img, cv::COLOR_BGR2GRAY);
   // blur image
-  cv::GaussianBlur(img, img, cv::Size(3, 3), 0, 0);
-  // cv::blur(img, img, cv::Size(10, 10));
+  // cv::GaussianBlur(img, img, cv::Size(3, 3), 0, 0);
+  cv::blur(img, img, cv::Size(3, 3));
+  int thresh = 100;
+  cv::Canny(img, img, thresh, thresh * 2);
+  std::vector<std::vector<cv::Point>> contours;
+  std::vector<cv::Vec4i> hierarchy;
+  findContours(img, contours, hierarchy, cv::RETR_TREE,
+               cv::CHAIN_APPROX_SIMPLE);
+
+  cv::Mat drawing = cv::Mat::zeros(img.size(), CV_8UC3);
+  for (size_t i = 0; i < contours.size(); i++) {
+    cv::Scalar color = cv::Scalar(rng.uniform(0, 256), rng.uniform(0, 256),
+                                  rng.uniform(0, 256));
+    drawContours(drawing, contours, (int)i, color, 2, cv::LINE_8, hierarchy, 0);
+  }
+
+  return drawing;
 
   // loop over pixles
-  for (int i = 0; i < img.rows; i++) {
-    for (int j = 0; j < img.cols; j++) {
-      uchar pixel = img.at<uchar>(cv::Point(i, j));
+  // for (int i = 0; i < img.rows; i++) {
+  //   for (int j = 0; j < img.cols; j++) {
+  //     uchar pixel = img.at<uchar>(cv::Point(i, j));
 
-      if (pixel > max) {
-        max = pixel;
-      }
-    }
-  }
-  std::cout << "max: " << max << std::endl;
+  //     if (pixel > max) {
+  //       max = pixel;
+  //     }
+  //   }
+  // }
+  // std::cout << "max: " << max << std::endl;
 
-  // loop over pixles
-  for (int i = 0; i < img.rows; i++) {
-    for (int j = 0; j < img.cols; j++) {
-      uchar pixel = img.at<uchar>(cv::Point(i, j));
-      if (pixel >= max) {
-        pixel = 0;
-      }
+  // // loop over pixles
+  // for (int i = 0; i < img.rows; i++) {
+  //   for (int j = 0; j < img.cols; j++) {
+  //     uchar pixel = img.at<uchar>(cv::Point(i, j));
+  //     if (pixel >= max) {
+  //       pixel = 0;
+  //     }
 
-      img.at<uchar>(cv::Point(i, j)) = pixel;
-    }
-  }
+  //     img.at<uchar>(cv::Point(i, j)) = pixel;
+  //   }
+  // }
 
   return img;
 }
@@ -143,7 +160,7 @@ void long_operation() {
   std::cout << "long_operation start" << std::endl;
   using namespace cv;
   // open "test.jpg" and store it in variable "image"
-  cv::Mat img = cv::imread("test.jpg", cv::IMREAD_ANYCOLOR);
+  cv::Mat img = cv::imread("test2.jpg", cv::IMREAD_ANYCOLOR);
   if (img.empty()) {
     std::cout << "Could not read the image: " << std::endl;
     return;
@@ -159,11 +176,8 @@ void long_operation() {
     }
   }
 
-  cv::Mat thresh = simple_degridation(img.clone());
-  cv::Mat bright = bright_find(img.clone());
-
-  cv::imwrite("thresh.jpg", thresh);
-  cv::imwrite("bright.jpg", bright);
+  cv::imwrite("thresh.jpg", simple_degridation(img.clone(), 4));
+  cv::imwrite("bright.jpg", bright_find(img.clone()));
 
   std::cout << "long_operation end" << std::endl;
 }
